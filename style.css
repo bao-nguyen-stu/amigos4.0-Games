@@ -1284,169 +1284,10 @@ body {
   box-shadow: 0 0 50px #fff;
 }
 
-/* Hiệu ứng nhiễu màu cho nút vàng */
-@keyframes crtFlickerYellow {
-  0% { opacity: 0.9; text-shadow: 2px 0 0 #ff00ff, -2px 0 0 #00ffff; }
-  100% { opacity: 1; text-shadow: -2px 0 0 #ff00ff, 2px 0 0 #00ffff; }
-}
-
 
 /* ==========================================================================
-   SEVERE VIRUS CORRUPTION MODE (DARK/GRAYSCALE Y2K CASCADING VIRUS)
+   SEVERE VIRUS CORRUPTION MODE & EFFECTS
    ========================================================================== */
-
-.grayscale-glitch-body {
-  filter: grayscale(100%) brightness(70%) contrast(120%);
-  background-color: #000 !important;
-}
-
-.grayscale-glitch-body .layout {
-  animation: slowLayoutTear 5s infinite alternate;
-}
-
-@keyframes slowLayoutTear {
-  0% {
-    transform: skewX(0deg);
-  }
-  100% {
-    transform: skewX(1deg);
-  }
-}
-
-.glitching-btn-dark {
-  position: fixed !important;
-  z-index: 99999 !important;
-  background-color: #111 !important;
-  color: #fff !important;
-  border: 3px double var(--purple) !important;
-  font-family: "Courier New", Courier, monospace !important;
-  font-size: 18px !important;
-  padding: 15px 25px !important;
-  box-shadow: 4px 4px 0px #000;
-  cursor: pointer !important;
-  text-transform: uppercase;
-  transition: transform 0.2s ease;
-}
-
-.glitching-btn-dark:hover {
-  background-color: var(--purple) !important;
-  color: white !important;
-}
-
-.corrupted-text-dark {
-  color: #888 !important;
-  background: black !important;
-  font-family: "Courier New", Courier, monospace !important;
-  font-weight: bold !important;
-  font-size: 1.1em !important;
-  text-transform: uppercase;
-  border-bottom: 1px dotted #333;
-}
-
-/* ==========================================================================
-   CORRUPTION SEQUENCE STYLES (10 SECOND ENDING)
-   ========================================================================== */
-#fog-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: black;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 10s ease-in-out; /* 10-second slow fade */
-  z-index: 900000; /* Just below modal and look-away btn */
-}
-
-#fog-overlay.fog-active {
-  opacity: 0.95;
-  pointer-events: all;
-}
-
-/* REFINED: Looks like a harsh Y2K Fatal Error box */
-.spam-ad {
-  position: fixed;
-  background: #8b0000; /* Dark, eerie red */
-  color: #fff;
-  border: 4px solid #ff0000;
-  outline: 2px solid yellow; /* Double retro border */
-  font-family: 'Courier New', Courier, monospace; /* System font */
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-  padding: 20px;
-  box-shadow: 8px 8px 0px rgba(0,0,0,0.9);
-  z-index: 900001;
-  transform: rotate(var(--rot, 0deg));
-  animation: spamShake 0.1s infinite alternate;
-}
-
-@keyframes spamShake {
-  0% { transform: translate(2px, 2px) rotate(var(--rot, 0deg)); }
-  100% { transform: translate(-2px, -2px) rotate(calc(var(--rot, 0deg) + 2deg)); }
-}
-
-/* REFINED: Added CRT flicker and glow */
-#look-away-btn {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 20px 40px;
-  font-size: 24px;
-  font-family: Arial, sans-serif;
-  font-weight: bold;
-  background: #000;
-  color: #fff;
-  border: 4px solid var(--purple);
-  box-shadow: 0 0 20px var(--purple);
-  cursor: pointer;
-  opacity: 0;
-  z-index: 900002;
-  transition: opacity 2s ease-in, background 0.3s;
-  text-transform: uppercase;
-}
-
-#look-away-btn.look-away-visible {
-  opacity: 1;
-  animation: crtFlicker 0.15s infinite;
-}
-
-#look-away-btn:hover {
-  background: var(--purple);
-  color: #fff;
-  animation: none; /* Stop flickering on hover */
-  box-shadow: 0 0 40px var(--purple);
-}
-
-@keyframes crtFlicker {
-  0% { opacity: 0.9; text-shadow: 2px 0 0 red, -2px 0 0 blue; }
-  100% { opacity: 1; text-shadow: -2px 0 0 red, 2px 0 0 blue; }
-}
-
-/* ==========================================================================
-   HIGHLIGHT CLOSE BUTTON & GRAYSCALE CORRUPTION
-   ========================================================================== */
-#close-modal-btn {
-  background-color: #33FF58 !important; 
-  color: #000 !important; 
-  border: 2px solid #FFF !important;
-  box-shadow: 0 0 15px #33FF58, 0 0 30px #33FF58;
-  animation: pulseClose 0.8s infinite alternate;
-  font-size: 18px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
-@keyframes pulseClose {
-  0% { 
-    transform: scale(1); 
-    box-shadow: 0 0 10px #33FF58; 
-  }
-  100% { 
-    transform: scale(1.2); 
-    box-shadow: 0 0 25px #53A643, 0 0 45px #33FF58; 
-  }
-}
-
-/* 1. Only grayscale the main web content, ignoring the modal and popups */
 .grayscale-glitch-body #bg-canvas-container,
 .grayscale-glitch-body .topbar,
 .grayscale-glitch-body .page,
@@ -1454,16 +1295,98 @@ body {
   filter: grayscale(100%) brightness(70%) contrast(120%);
 }
 
-/* 2. Give the Hydra popups a neon outline & shadow so they pop against the black background */
-.grayscale-glitch-body .hydra-ad-popup {
-  box-shadow: 6px 6px 0px #ff00ff, 0 0 20px #00ffff !important;
-  border: 3px solid #fff !important;
+#fog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 10s ease-in-out;
+  z-index: 900000;
+}
+#fog-overlay.fog-active {
+  opacity: 0.95;
+  pointer-events: all;
 }
 
-/* 3. Give the red spam text boxes a bright yellow shadow so they don't blend in */
+.spam-ad {
+  position: fixed;
+  background: #8b0000;
+  color: #fff;
+  border: 4px solid #ff0000;
+  outline: 2px solid yellow;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.9);
+  z-index: 900001;
+  transform: rotate(var(--rot, 0deg));
+  animation: spamShake 0.1s infinite alternate;
+}
+@keyframes spamShake {
+  0% {
+    transform: translate(2px, 2px) rotate(var(--rot, 0deg));
+  }
+  100% {
+    transform: translate(-2px, -2px) rotate(calc(var(--rot, 0deg) + 2deg));
+  }
+}
+
 .grayscale-glitch-body .spam-ad {
   box-shadow: 8px 8px 0px #fffc00 !important;
 }
+
+#look-away-btn {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px 40px;
+  font-size: 24px;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  background: #fffc00 !important;
+  color: #000 !important;
+  border: 4px solid #000 !important;
+  box-shadow: 0 0 20px #fffc00 !important;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 900002;
+  transition:
+    opacity 2s ease-in,
+    background 0.3s;
+  text-transform: uppercase;
+}
+#look-away-btn.look-away-visible {
+  opacity: 1;
+  animation: crtFlicker 0.15s infinite;
+}
+#look-away-btn:hover {
+  background: #000 !important;
+  color: #fffc00 !important;
+  animation: none;
+  box-shadow: 0 0 40px #fffc00 !important;
+}
+@keyframes crtFlicker {
+  0% {
+    opacity: 0.9;
+    text-shadow:
+      2px 0 0 red,
+      -2px 0 0 blue;
+  }
+  100% {
+    opacity: 1;
+    text-shadow:
+      -2px 0 0 red,
+      2px 0 0 blue;
+  }
+}
+ 
 
 /* =========================
    TABLET
