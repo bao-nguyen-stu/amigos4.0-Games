@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/p5@2.3.2/lib/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.4.1/dist/p5.sound.min.js"></script>
+<script src="https://unpkg.com/ml5@1/dist/ml5.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Retro Game Layout</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-inner">
+        <strong>Amigos 4.0</strong>
+
+        <nav>
+          <div class="navBtn"><a href="#">Search</a></div>
+          <div class="navBtn"><a href="#">Blog</a></div>
+          <div class="navBtn active"><a href="#">Games</a></div>
+          <div class="navBtn"><a href="#">Messenger</a></div>
+        </nav>
+
+        <button>What's New?</button>
+      </div>
+    </div>
+
+    <main class="page">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="brand">AMIGOS!<span>Games</span></div>
+
+        <div class="search">
+          <label>Search the Web:</label>
+          <input placeholder="Search..." />
+          <button>Search</button>
+        </div>
+
+        <nav class="main-nav">
+          <a>Free Games</a>
+          <a>Arcade</a>
+          <a>Board</a>
+          <a>Card</a>
+          <a>Puzzle</a>
+          <a>Skills</a>
+          <a>Downloads</a>
+        </nav>
+      </header>
+
+      <!-- BANNER -->
+      <div class="banner"></div>
+
+      <!-- MAIN 3 COLUMN LAYOUT -->
+      <section class="layout">
+        <!-- LEFT COLUMN -->
+        <aside class="left-column">
+          <div class="ad box">
+            <small>ADVERTISEMENT</small>
+
+            <h4>FREE RINGTONE!</h4>
+
+            <p>Download the hottest track straight to your phone.</p>
+
+            <button>Download Now</button>
+          </div>
+
+          <div class="sdg box">
+            </div>
+          
+          <div class="comments box">
+            <h2>Top comments</h2>
+          </div>
+        </aside>
+
+        <!-- CENTRE COLUMN -->
+        <section class="centre-column">
+          <!-- p5.js canvas -->
+          <div class="mainCanvas"></div>
+
+          <!-- GAME INFO -->
+        <h2 class="section-title">
+          Game Information
+        </h2>
+
+
+        <div class="info-grid">
+
+          <article id="ratings">
+            Ratings
+          </article>
+
+          <article id="producer">
+            This game is made by Gen Z?!
+          </article>
+
+          <article id="tutorial">
+            For newbiesss
+          </article>
+
+          <article id="All">
+            For all of us!
+          </article>
+
+        </div>
+
+
+          <div class="footer">
+          <p>COMM2754, Digital Media Specialisation 1, Semester 2 2026</p>
+          <p>
+            RMIT University Vietnam, Saigon South Campus, School of Communication and Design, Digital Media Program 
+          </p>
+          </div>
+        </section>
+        <!--rm, comm-->
+
+        <!-- RIGHT COLUMN -->
+        <aside class="right-column">
+          <!-- QUOTE -->
+          <div class="quote box">
+            <h3>Quote of the Day</h3>
+
+            <p>
+              “I finally summed up the courage to say the words that would
+              change my life: I need help.”
+            </p>
+
+            <small>- Elton John</small>
+          </div>
+
+          <!-- PROMO -->
+          <div class="promo box">
+            <div class="quangcao"></div>    
+          </div>
+
+          <!-- TOPICS -->
+          <div class="topics box">
+            <h3>★ Hot topics ★</h3>
+
+            <p>› <a href= "https://daibieunhandan.vn/xa-hoi-hoa-cong-tac-cai-nghien-giai-phap-thiet-thuc-trong-phong-chong-ma-tuy-10385006.html" target="_blank">Xã hội hóa công tác cai nghiện: Giải pháp thiết thực trong phòng, chống ma túy</a></p>
+            <p>› <a href = "http://sciencedirect.com/science/article/pii/S0955395924003657" target="_blank">“When she's there, I no longer worry about her being arrested”—Family perspectives on compulsory drug rehabilitation in Vietnam and implications for community-based services</a></p>
+            <p>› <a href= "https://sdgs.un.org/goals/goal3#targets_and_indicators" target="_blank">SDG Goal 3: Ensure healthy lives and promote well-being for all at all age</a></p>
+            <p>› <a href= "https://parade.com/living/quote-of-the-day-elton-john-courage-sobriety-i-need-help?fbclid=IwcGRvZgFleHRuA2FlbQIxMABicmlkETFtOWFDOENnN3lBcGRRS2d6c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHikTzhl4LkKeroDY9X-h_hLcPUvTGNTWEnXu9BSx7psfGfU-nHUO7mHxA7fr_aem_HHXg9WpaVbNoS1efZAlqOA">Quote of the Day: Elton John on Courage and Sobriety</a></p>
+          </div>
+
+         <!-- FOLLOW -->
+<div class="follow box">
+  <div class="follow-title">
+    <strong>Follow AMIGOS!</strong>
+    <small>Games</small>
+  </div>
+
+  <div class="social-buttons">
+
+  <div class="social-item">
+    <button
+  type="button"
+  class="social-btn gmail"
+  aria-label="Copy email address"
+>
+  ✉
+</button>
+    <small>Gmail</small>
+  </div>
+
+  <div class="social-item">
+    <a
+      href="https://www.instagram.com/baodeyyy?stkn=MXI4MWlkY3g1dzRpMw%3D%3D"
+      aria-label="Instagram"
+      class="social-btn instagram"
+      target="_blank"
+    >
+      i
+    </a>
+    <small>Instagram</small>
+  </div>
+
+</div>
+
+  </div>
+
+
+        </aside>
+      </section>
+
+      <!-- Purple Border & Dark Backdrop Overlay -->
+<div id="purple-border-overlay" class="purple-border-overlay hidden"></div>
+
+<!-- Container for Chaotic Ads -->
+<div id="popup-ads-container" class="popup-ads-container hidden"></div>
+
+<!-- THE "WHAT'S NEW?" MODAL -->
+<div id="whats-new-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">SYSTEM OVERRIDE: SDG 3.5</span>
+      <button id="close-modal-btn" class="close-btn">X</button>
+    </div>
+
+    <div class="modal-content">
+      <h2 class="modal-main-heading">
+        "You saw the addiction.<br />Did you see the person?"
+      </h2>
+
+      <h3 class="cta-title">Call to Action</h3>
+      <p>
+        Aligned with United Nations Sustainable Development Goal 3.5, this
+        project raises awareness of substance use disorders and promotes
+        voluntary treatment through creative communication. In Vietnam, only
+        90,869 of 220,904 registered people who use drugs are engaged in
+        structured rehabilitation (Ministry of Public Security 2024, cited
+        in Nguyen et al. 2025). While 43% are placed in compulsory
+        rehabilitation centres, 85.6% relapse within 12 months (Nguyen et
+        al. 2025). In Viet Nam, drug addiction treatment has traditionally
+        relied heavily on compulsory institutional care. In 2019, 76.8% of
+        people receiving institutional treatment were treated compulsorily,
+        compared with 19.2% voluntarily. Meanwhile, around 800
+        community-based treatment and support sites operated across 23
+        cities and provinces, although relapse and unemployment remained
+        significant challenges (Le et al. 2024).
+      </p>
+
+      <p>
+        Featuring one of the most talented, famous figure of the music
+        industry who has overcome addiction - while also advocating for
+        rehabilitation of substance abuse victims, Elton John quoted: “I
+        finally summoned up the courage to say three words that would change
+        my life ‘I need help’” (John 2026, cited in Broomall 2026). This
+        marked his voluntary in seeking entry to rehabilitation in 1990,
+        with the help of his loved ones. He later described rehabilitation
+        as a freeing experience that helped him rediscover joy in life
+        (Broomall 2026). Influenced by his strong will and resilience, our
+        call to action aims to erase stigma formed that revolves around
+        substance abuse victim, encourage people to see them beyond their
+        suffering: “You saw the addiction. Did you see the person?”.
+        Targeting young Vietnamese adults to perceive how addiction could
+        affect a person through multiple factors - the campaign highlights a
+        sense of immersive nostalgia with 2000s aesthetic of an instant
+        messaging browser, lead the user with a plot line of familiarity
+        when the victim, is the one you care about.
+      </p>
+
+      <div class="medical-info-box">
+        <h3>MEDICAL SERVICES & SUPPORT IN VIETNAM</h3>
+        <p>
+          If you see someone struggling with addiction, or if you need help
+          yourself, please reach out to these official, voluntary medical
+          facilities for guidance and rehabilitation:
+        </p>
+        <ul>
+          <li>
+            <strong>Ho Chi Minh City Psychiatric Hospital (Bệnh viện Tâm thần TP.HCM):</strong>
+            Call <span class="highlight-text">(028) 3923 4675</span>. They
+            provide professional psychological counseling and voluntary
+            detoxification treatments.
+          </li>
+          <li>
+            <strong>Ministry of Health Hotline:</strong> Call
+            <span class="highlight-text">1900 9095</span> for medical
+            direction and information regarding nearest treatment centers.
+          </li>
+          <li>
+            <strong>National Child & Youth Protection Hotline:</strong> Call
+            <span class="highlight-text">111</span> for urgent mental health
+            crises and general social support interventions.
+          </li>
+        </ul>
+      </div>
+
+      <p class="about-us-text">
+        <strong>About Us:</strong><br />
+        We are a group of Digital Media students from RMIT University
+        Vietnam (Saigon South Campus). This project is designed for COMM2754
+        (Digital Media Specialisation 1). We created this generative art
+        project with the purpose of helping everyone view people struggling
+        with addiction through a gentler, more empathetic lens, and to
+        understand the practical steps needed to help them overcome it.
+      </p>
+    </div>
+  </div>
+</div>
+      
+    </main>
+    <script src="sketchUI.js"></script>
+    <script src="corrupt.js"></script>
+    <script src="sketchBackground.js"></script>
+    <script src="sketch.js"></script>
+    
+  </body>
+</html>
