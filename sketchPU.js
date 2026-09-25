@@ -10,7 +10,6 @@ const HydraAdsSystem = {
     "CLICK HERE TO CLAIM YOUR ADDICTION?"
   ],
 
-  // Internal state tracking
   activePopupCount: 0,
   totalSpawnedInSequence: 0,
   totalClosedCount: 0,
