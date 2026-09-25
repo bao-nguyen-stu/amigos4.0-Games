@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
 const cloverImageFile =
   "edited-media/COMM2754-2026-S2-A3w12-Amigos4-clover.gif";
 
-const maxClovers = 12; // Enough pairs to cover ultra-wide screens
+const maxClovers = 12; 
 const cloverPreloads = [];
 for (let i = 0; i < maxClovers; i++) {
   const img = new Image();
