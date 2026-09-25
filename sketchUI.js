@@ -92,13 +92,41 @@ document.addEventListener("DOMContentLoaded", () => {
 // 3. SCROLLING AD SKETCH
 // =========================================================
 
+const cloverImageFile =
+  "edited-media/COMM2754-2026-S2-A3w12-Amigos4-clover.gif";
+
+const maxClovers = 12; // Enough pairs to cover ultra-wide screens
+const cloverPreloads = [];
+for (let i = 0; i < maxClovers; i++) {
+  const img = new Image();
+  img.src = cloverImageFile;
+  cloverPreloads.push(img);
+}
+
 const scrollingAdSketch = (p) => {
   let adText = "You saw the addiction. Did you see the person?";
+
   let textXPos = 0;
   let scrollSpeed = 1.5;
   let textWidthValue = 0;
+
+  // Space between each complete message
   let gap = 400;
 
+  // Banner container
+  let container = null;
+
+  // CLOVERS
+  let cloverPool = [];
+  let cloverImageReady = false;
+
+  let cloverImageWidth = 32;
+  let cloverImageHeight = 32;
+
+  // Small distance between clover and sentence
+  const iconGap = 3;
+
+  // CANDIES
   let candies = [];
   let loadedSounds = [];
   let isHovering = false;
@@ -106,7 +134,7 @@ const scrollingAdSketch = (p) => {
   const candyImageFiles = [
     "edited-media/COMM2754-2026-S2-A3w12-Amigos4-element1.png",
     "edited-media/COMM2754-2026-S2-A3w12-Amigos4-element2.png",
-    "edited-media/COMM2754-2026-S2-A3w12-Amigos4-element3.png"
+    "edited-media/COMM2754-2026-S2-A3w12-Amigos4-element3.png",
   ];
 
   let candyImages = [];
@@ -117,14 +145,90 @@ const scrollingAdSketch = (p) => {
   let pendingHoverX = 0;
   let pendingHoverY = 0;
 
+  // =======================================================
+  // SOUNDS
+  // =======================================================
+
   const soundFiles = [
-    "designed-sounds/COMM2754-2026-S2-A3w12-radiosilent-anim.wav",
     "designed-sounds/COMM2754-2026-S2-A3w12-blip2-anim.wav",
-    "designed-sounds/COMM2754-2026-S2-A3w12-airleak-1-anim.wav"
+    "designed-sounds/COMM2754-2026-S2-A3w12-BeyondTheLabel-melody6.wav",
+    "designed-sounds/COMM2754-2026-S2-A3w12-blip-anim.wav",
   ];
 
+  // =======================================================
+  // SETUP CLOVER ELEMENT POOL
+  // =======================================================
+
+  function setupCloverPool() {
+    if (!container) return;
+
+    cloverPreloads.forEach((preloadImg) => {
+      preloadImg.style.position = "absolute";
+      preloadImg.style.pointerEvents = "none";
+      preloadImg.style.display = "none";
+      preloadImg.style.objectFit = "contain";
+      preloadImg.style.zIndex = "2";
+
+      container.appendChild(preloadImg);
+      cloverPool.push(preloadImg);
+    });
+  }
+
+  // =======================================================
+  // SET CLOVER SIZE
+  // =======================================================
+
+  function setupCloverSize() {
+    const sampleImg = cloverPool[0];
+    if (!sampleImg) return;
+
+    const originalWidth = sampleImg.naturalWidth;
+    const originalHeight = sampleImg.naturalHeight;
+
+    if (originalWidth > 0 && originalHeight > 0) {
+      cloverImageHeight = 32;
+      cloverImageWidth = (originalWidth / originalHeight) * cloverImageHeight;
+
+      // Apply size to all preloaded clovers in the pool
+      cloverPool.forEach((img) => {
+        img.style.width = `${cloverImageWidth}px`;
+        img.style.height = `${cloverImageHeight}px`;
+      });
+    }
+
+    cloverImageReady = true;
+  }
+
+  // =======================================================
+  // TRIGGER INTERACTION (Sound + Particles)
+  // =======================================================
+
+  function triggerInteraction(x, y) {
+    // Play random sound
+    if (loadedSounds.length > 0) {
+      const snd = p.random(loadedSounds);
+      snd.currentTime = 0;
+      snd.play().catch((error) => {
+        console.log("Audio blocked:", error);
+      });
+    }
+
+    // Spawn candy
+    if (candyImagesReady) {
+      spawnCandyParticles(x, y);
+    } else {
+      pendingCandyHover = true;
+      pendingHoverX = x;
+      pendingHoverY = y;
+    }
+  }
+
+  // =======================================================
+  // SETUP
+  // =======================================================
+
   p.setup = () => {
-    const container = document.querySelector(".banner");
+    container = document.querySelector(".banner");
 
     const w = container?.clientWidth || 300;
     const h = container?.clientHeight || 40;
@@ -133,8 +237,21 @@ const scrollingAdSketch = (p) => {
 
     if (container) {
       canvas.parent(container);
+      container.style.position = "relative";
+      container.style.overflow = "hidden";
     }
 
+    // Initialize and append preloaded clover elements
+    setupCloverPool();
+
+    // Check sizing
+    if (cloverPool[0] && cloverPool[0].complete) {
+      setupCloverSize();
+    } else if (cloverPool[0]) {
+      cloverPool[0].onload = setupCloverSize;
+    }
+
+    // TEXT
     p.textSize(24);
     p.textFont("Georgia");
     p.textStyle(p.BOLD);
@@ -143,12 +260,14 @@ const scrollingAdSketch = (p) => {
     textWidthValue = p.textWidth(adText);
     textXPos = p.width;
 
+    // SOUNDS
     loadedSounds = soundFiles.map((path) => {
       const snd = new Audio(path);
       snd.volume = 0.5;
       return snd;
     });
 
+    // CANDY IMAGES
     candyImageFiles.forEach((path) => {
       const img = new Image();
       img.src = path;
@@ -159,7 +278,6 @@ const scrollingAdSketch = (p) => {
 
         if (loadedCandyCount === candyImageFiles.length) {
           candyImagesReady = true;
-
           if (pendingCandyHover) {
             spawnCandyParticles(pendingHoverX, pendingHoverY);
             pendingCandyHover = false;
@@ -169,7 +287,6 @@ const scrollingAdSketch = (p) => {
 
       img.onerror = () => {
         loadedCandyCount++;
-
         if (loadedCandyCount === candyImageFiles.length) {
           candyImagesReady = true;
           if (pendingCandyHover) {
@@ -180,6 +297,30 @@ const scrollingAdSketch = (p) => {
       };
     });
   };
+
+  // =======================================================
+  // MOUSE / TOUCH CLICK HANDLER (Mobile & Tablet)
+  // =======================================================
+
+  p.mousePressed = () => {
+    const isMobileOrTablet = window.matchMedia("(max-width: 760px)").matches;
+
+    if (isMobileOrTablet) {
+      const mouseInCanvas =
+        p.mouseX > 0 &&
+        p.mouseX <= p.width &&
+        p.mouseY > 0 &&
+        p.mouseY <= p.height;
+
+      if (mouseInCanvas) {
+        triggerInteraction(p.mouseX, p.mouseY);
+      }
+    }
+  };
+
+  // =======================================================
+  // SPAWN CANDY PARTICLES
+  // =======================================================
 
   function spawnCandyParticles(x, y) {
     if (!candyImagesReady) {
@@ -193,7 +334,9 @@ const scrollingAdSketch = (p) => {
       (img) => img.complete && img.naturalWidth > 0
     );
 
-    if (usableImages.length === 0) return;
+    if (usableImages.length === 0) {
+      return;
+    }
 
     const particleCount = p.floor(p.random(15, 30));
 
@@ -203,70 +346,141 @@ const scrollingAdSketch = (p) => {
     }
   }
 
+  // =======================================================
+  // DRAW
+  // =======================================================
+
   p.draw = () => {
     p.clear();
 
     p.fill("#FFFFFF");
     p.noStroke();
 
-    // STRICT HOVER DETECTION: Checks canvas bounds
+    // =====================================================
+    // INTERACTION DETECTION (Desktop Hover vs Mobile/Tablet Click)
+    // =====================================================
+
+    const isMobileOrTablet = window.matchMedia("(max-width: 760px)").matches;
     const mouseInCanvas =
       p.mouseX > 0 &&
       p.mouseX <= p.width &&
       p.mouseY > 0 &&
       p.mouseY <= p.height;
 
-    // Trigger only when entering the banner from outside
-    if (mouseInCanvas && !isHovering) {
-      isHovering = true;
-
-      if (loadedSounds.length > 0) {
-        const snd = p.random(loadedSounds);
-        snd.currentTime = 0;
-        snd.play().catch((error) => {
-          console.log("Audio blocked:", error);
-        });
+    // Desktop hover behavior only runs if NOT on mobile/tablet view
+    if (!isMobileOrTablet) {
+      if (mouseInCanvas && !isHovering) {
+        isHovering = true;
+        triggerInteraction(p.mouseX, p.mouseY);
       }
 
-      if (candyImagesReady) {
-        spawnCandyParticles(p.mouseX, p.mouseY);
-      } else {
-        pendingCandyHover = true;
-        pendingHoverX = p.mouseX;
-        pendingHoverY = p.mouseY;
+      if (!mouseInCanvas) {
+        isHovering = false;
       }
     }
 
-    if (!mouseInCanvas) {
-      isHovering = false;
-    }
+    // =====================================================
+    // UPDATE CANDIES
+    // =====================================================
 
-    // Update & Display Candies
     candies = candies.filter((candy) => {
       candy.update();
       candy.display();
+
       return !candy.isDead();
     });
 
-    // Scrolling Text
-    const fullLength = textWidthValue + gap;
+    // =====================================================
+    // CALCULATE COMPLETE MESSAGE WIDTH
+    // =====================================================
+
+    const textWithCloversWidth =
+      cloverImageWidth + iconGap + textWidthValue + iconGap + cloverImageWidth;
+
+    const fullLength = textWithCloversWidth + gap;
+
+    // =====================================================
+    // HIDE ALL CLOVERS IN POOL INITIALLY EACH FRAME
+    // =====================================================
+
+    cloverPool.forEach((img) => {
+      if (img) img.style.display = "none";
+    });
+
+    // =====================================================
+    // DRAW REPEATING MESSAGES & DYNAMIC CLOVER PAIRS
+    // =====================================================
+
+    let cloverIndexCounter = 0;
 
     for (let currentX = textXPos; currentX < p.width; currentX += fullLength) {
-      p.text(adText, currentX, p.height / 2);
+      // ---------------------------------------------------
+      // 1. FRONT CLOVER (Before Sentence)
+      // ---------------------------------------------------
+      if (cloverImageReady) {
+        const firstCloverX = currentX;
+        const firstCloverY = p.height / 2 - cloverImageHeight / 2;
+
+        if (firstCloverX + cloverImageWidth > 0 && firstCloverX < p.width) {
+          if (cloverIndexCounter < cloverPool.length) {
+            const activeClover = cloverPool[cloverIndexCounter];
+            activeClover.style.display = "block";
+            activeClover.style.left = `${firstCloverX}px`;
+            activeClover.style.top = `${firstCloverY}px`;
+          }
+        }
+      }
+      cloverIndexCounter++;
+
+      // ---------------------------------------------------
+      // TEXT
+      // ---------------------------------------------------
+      const textX = currentX + cloverImageWidth + iconGap;
+      p.text(adText, textX, p.height / 2);
+
+      // ---------------------------------------------------
+      // 2. BACK CLOVER (Behind Sentence)
+      // ---------------------------------------------------
+      if (cloverImageReady) {
+        const secondCloverX = textX + textWidthValue + iconGap;
+        const secondCloverY = p.height / 2 - cloverImageHeight / 2;
+
+        if (secondCloverX + cloverImageWidth > 0 && secondCloverX < p.width) {
+          if (cloverIndexCounter < cloverPool.length) {
+            const activeClover = cloverPool[cloverIndexCounter];
+            activeClover.style.display = "block";
+            activeClover.style.left = `${secondCloverX}px`;
+            activeClover.style.top = `${secondCloverY}px`;
+          }
+        }
+      }
+      cloverIndexCounter++;
     }
+
+    // =====================================================
+    // SCROLL
+    // =====================================================
 
     textXPos -= scrollSpeed;
 
-    if (textXPos <= -textWidthValue) {
+    if (textXPos <= -textWithCloversWidth) {
       textXPos += fullLength;
     }
   };
 
-  p.windowResized = () => {
-    const container = document.querySelector(".banner");
+  // =========================================================
+  // WINDOW RESIZE
+  // =========================================================
 
-    if (container) {
-      p.resizeCanvas(container.clientWidth, container.clientHeight);
+  p.windowResized = () => {
+    const currentContainer = document.querySelector(".banner");
+
+    if (currentContainer) {
+      p.resizeCanvas(
+        currentContainer.clientWidth,
+        currentContainer.clientHeight
+      );
+
       textWidthValue = p.textWidth(adText);
     }
   };
@@ -1543,7 +1757,7 @@ window.addEventListener('DOMContentLoaded', () => {
   
   if (gmailBtn) {
     gmailBtn.addEventListener('click', () => {
-      const email = "baongocminhkhai@gmail.com"; 
+      const email = "s4067283@rmit.edu.vn"; 
       
       const textArea = document.createElement("textarea");
       textArea.value = email;
@@ -1696,5 +1910,73 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     commentsListContainer.insertAdjacentHTML("beforeend", commentHTML);
+  });
+});
+
+// =========================================================
+// 13. WHAT'S NEW MODAL
+// =========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const whatsNewBtn = document.getElementById("whats-new-btn");
+  const whatsNewModal = document.getElementById("whats-new-modal");
+  const closeModalBtn = document.getElementById("close-modal-btn");
+
+  // Make sure all elements exist before adding events
+  if (!whatsNewBtn || !whatsNewModal || !closeModalBtn) {
+    console.warn("What's New modal elements not found.");
+    return;
+  }
+
+  // OPEN MODAL
+  whatsNewBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    whatsNewModal.classList.remove("hidden");
+  });
+
+  // CLOSE MODAL WITH X BUTTON
+  closeModalBtn.addEventListener("click", () => {
+    whatsNewModal.classList.add("hidden");
+  });
+
+  // CLOSE MODAL WHEN CLICKING OUTSIDE THE BOX
+  whatsNewModal.addEventListener("click", (event) => {
+    if (event.target === whatsNewModal) {
+      whatsNewModal.classList.add("hidden");
+    }
+  });
+
+  // CLOSE MODAL WITH ESC KEY
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      whatsNewModal.classList.add("hidden");
+    }
+  });
+});
+
+// =========================================================
+// 14. QUOTE HOVER SOUND
+// =========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const quoteBox = document.querySelector(".quote.box");
+
+  if (!quoteBox) {
+    console.warn("Quote box not found.");
+    return;
+  }
+
+  const quoteHoverSound = new Audio(
+    "designed-sounds/COMM2754-2026-S2-A3w12-beat-anim.wav"
+  );
+
+  quoteBox.addEventListener("mouseenter", () => {
+    quoteHoverSound.currentTime = 0;
+    quoteHoverSound.play();
+  });
+
+  quoteBox.addEventListener("mouseleave", () => {
+    quoteHoverSound.pause();
+    quoteHoverSound.currentTime = 0;
   });
 });
