@@ -1,20 +1,9 @@
 const backgroundWordsSketch = (p) => {
   function getCanvasSize() {
-
-  const area = document.querySelector(".mainCanvas") || document.getElementById("mainCanvas");
-
-  if (!area) {
-    return {
-      w: window.innerWidth,
-      h: window.innerHeight,
-    };
-
-  return {
-    w: Math.max(1, area.clientWidth),
-    h: Math.max(1, area.clientHeight),
-  };
-}
-
+    const area = document.querySelector(".mainCanvas") || document.getElementById("mainCanvas");
+    if (!area) {
+      return { w: window.innerWidth, h: window.innerHeight };
+    }
     return {
       w: Math.max(1, area.clientWidth),
       h: Math.max(1, area.clientHeight),
@@ -32,50 +21,90 @@ const backgroundWordsSketch = (p) => {
   const GAP = 2;
   const rowHeight = 22;
 
-  let hasPackedOnce = false;
   let segmentationStarted = false;
   let videoReady = false;
-  let growthStage = 0;
-  let isCorrupted = false;
+  let isDetecting = false;
 
-  const attributeWords = [
-    "lovely", "clever", "silly", "lazy", "funny",
-    "curious", "clumsy", "dreamer", "kind", "stubborn",
-    "creative", "sleepy", "loyal", "weird", "hopeful",
-    "playful", "moody", "gentle", "bold", "quiet",
-    "restless", "cheerful", "awkward", "generous", "petty",
-    "brave", "anxious", "witty", "clingy", "loving",
-    "shy", "messy", "sweet", "serious", "soft",
-    "dramatic", "impatient", "honest", "sensitive", "independent",
-    "friendly", "chaotic", "careful", "romantic", "nervous",
-    "optimistic", "pessimistic", "quiet", "loud", "awkward",
+  // --------------------------------------------------------------------------
+  // STAGE 1, STAGE 2, AND STAGE 3 MAP FROM PDF SECTION 1
+  // --------------------------------------------------------------------------
+  const STAGE1_WORDS = [
+    "ambitious", "hard-working", "determined", "grown-up", "responsible",
+    "cooperative", "accountable", "careful", "cautious", "pretty",
+    "clearheaded", "handsome", "independent", "successful", "obedient",
+    "social", "recovering", "lazy", "ignorant", "careless",
+    "reckless", "stubborn", "frustrated", "intelligent", "struggling",
+    "desperate", "wasteful", "distant", "isolated", "secretive",
+    "suspicious", "influenced", "dependent", "gangster", "dishonest",
+    "ill-manner", "ill-tempered", "humble", "clever", "steady",
+    "affectionate", "honest", "gentle"
   ];
 
-  const socialLabelWords = [
-    "genius","richkid","nerd","loser","popular","outsider","leader","rebel","goldenchild","overachiever", "underachiever", "classclown", "workaholic", "hipster", "introvert", "extrovert", "influencer", "artist", "failure", "success", "snob", "geek", "weirdo", "slacker", "teacher'spet", "dropout", "professional","amateur", "celebrity", "nobody", "addict", "addict","addict","addict", "addict", "addict", "weak", "junkie", "drunk", "unstable", "reckless", "troublemaker", "loser","failure", "mess", "liability", "unreliable", "selfish", "pathetic", "wasted", "hopeless", "dangerous", "broken", "irresponsible", "untrustworthy",  "outcast","burden", "problem", "disgrace", "delinquent", "degenerate", "washout",  "deadbeat", "flawed", "damaged",
-  ];
+  const LABEL_MAP = {
+    "ambitious": { stage2: "accomplished", stage3: "" },
+    "hard-working": { stage2: "accomplished", stage3: "" },
+    "determined": { stage2: "reliable", stage3: "" },
+    "grown-up": { stage2: "mature", stage3: "" },
+    "responsible": { stage2: "reliable", stage3: "" },
+    "cooperative": { stage2: "mature", stage3: "" },
+    "accountable": { stage2: "mature", stage3: "" },
+    "careful": { stage2: "reliable", stage3: "" },
+    "cautious": { stage2: "sensible", stage3: "" },
+    "pretty": { stage2: "outgoing", stage3: "addict" },
+    "clearheaded": { stage2: "reliable", stage3: "" },
+    "handsome": { stage2: "outgoing", stage3: "addict" },
+    "independent": { stage2: "sensible", stage3: "" },
+    "successful": { stage2: "accomplished", stage3: "" },
+    "obedient": { stage2: "sensible", stage3: "hopeless" },
+    "social": { stage2: "outgoing", stage3: "hopeless" },
+    "recovering": { stage2: "mature", stage3: "" },
+    "lazy": { stage2: "distrustful", stage3: "hopeless" },
+    "ignorant": { stage2: "distrustful", stage3: "dangerous" },
+    "careless": { stage2: "incompetent", stage3: "addict" },
+    "reckless": { stage2: "distrustful", stage3: "dangerous" },
+    "stubborn": { stage2: "aggressive", stage3: "addict" },
+    "frustrated": { stage2: "incompetent", stage3: "addict" },
+    "intelligent": { stage2: "accomplished", stage3: "wasted potential" },
+    "struggling": { stage2: "incompetent", stage3: "addict" },
+    "desperate": { stage2: "incompetent", stage3: "addict" },
+    "wasteful": { stage2: "incompetent", stage3: "addict" },
+    "distant": { stage2: "deceptive", stage3: "criminal" },
+    "isolated": { stage2: "deceptive", stage3: "criminal" },
+    "secretive": { stage2: "deceptive", stage3: "dangerous" },
+    "suspicious": { stage2: "deceptive", stage3: "dangerous" },
+    "influenced": { stage2: "incompetent", stage3: "weak" },
+    "dependent": { stage2: "incompetent", stage3: "hopeless" },
+    "gangster": { stage2: "aggressive", stage3: "criminal" },
+    "dishonest": { stage2: "deceptive", stage3: "criminal" },
+    "ill-manner": { stage2: "hostile", stage3: "dangerous" },
+    "ill-tempered": { stage2: "hostile", stage3: "dangerous" },
+    "humble": { stage2: "mature", stage3: "" },
+    "clever": { stage2: "accomplished", stage3: "" },
+    "steady": { stage2: "mature", stage3: "" },
+    "affectionate": { stage2: "reliable", stage3: "" },
+    "honest": { stage2: "reliable", stage3: "" },
+    "gentle": { stage2: "sensible", stage3: "" }
+  };
+
+  let activeProfileWords = [];
 
   p.setup = async function () {
-  p.pixelDensity(1);
+    p.pixelDensity(1);
 
-  const size = getCanvasSize();
-  const canvas = p.createCanvas(size.w, size.h);
+    const size = getCanvasSize();
+    const canvas = p.createCanvas(size.w, size.h);
 
-  // Attach canvas to the element with class "mainCanvas"
-  const holder = document.querySelector(".mainCanvas");
-  if (holder) {
-    canvas.parent(holder);
-  }
+    const holder = document.querySelector(".mainCanvas");
+    if (holder) {
+      canvas.parent(holder);
+    }
 
-  p.textFont("Arial");
-  p.textStyle(p.NORMAL);
+    p.textFont("Arial");
+    p.textStyle(p.BOLD);
 
     video = p.createCapture(
-      {
-        video: { facingMode: "user" },
-        audio: false,
-      },
-      () => { console.log("Camera stream created"); }
+      { video: { facingMode: "user" }, audio: false },
+      () => { console.log("Camera stream active"); }
     );
 
     video.hide();
@@ -86,28 +115,77 @@ const backgroundWordsSketch = (p) => {
     video.elt.addEventListener("loadeddata", waitForVideoDimensions);
     video.elt.addEventListener("canplay", waitForVideoDimensions);
 
-    window.triggerBackgroundWordGrowth = () => {
-      if (videoReady && segmentation && !isCorrupted) {
-        growAllRuns();
+    // ------------------------------------------------------------------------
+    // TRIGGER 1: "CREATE YOUR PROFILE" CLICK
+    // ------------------------------------------------------------------------
+    window.initProfileSilhouette = () => {
+      activeProfileWords = [];
+      for (let i = 0; i < 8; i++) {
+        const rand = STAGE1_WORDS[Math.floor(p.random(STAGE1_WORDS.length))];
+        activeProfileWords.push(rand);
       }
+      if (videoReady && segmentation) {
+        packWords(false);
+      }
+    };
+
+    // ------------------------------------------------------------------------
+    // TRIGGER 2: CARD SWIPE / ANSWER LABEL TRIGGER
+    // ------------------------------------------------------------------------
+    window.processCardLabels = (incomingLabels = []) => {
+      if (!incomingLabels || incomingLabels.length === 0) return;
+
+      incomingLabels.forEach((incomingLabel) => {
+        const cleanIncoming = String(incomingLabel).toLowerCase().trim();
+
+        // 1. Upgrade existing matching words
+        let foundMatch = false;
+        words.forEach((wd) => {
+          const cleanBase = String(wd.baseStage1).toLowerCase().trim();
+          const cleanCurrent = String(wd.currentText).toLowerCase().trim();
+
+          if (cleanBase === cleanIncoming || cleanCurrent === cleanIncoming) {
+            foundMatch = true;
+            wd.matchCount = (wd.matchCount || 1) + 1;
+
+            const mapEntry = LABEL_MAP[wd.baseStage1] || {};
+
+            if (wd.matchCount >= 6) {
+              wd.currentText = mapEntry.stage3 || mapEntry.stage2 || wd.currentText;
+              wd.stage = mapEntry.stage3 ? 3 : 2;
+              wd.size = mapEntry.stage3 ? 74 : 58;
+            } else if (wd.matchCount >= 4) {
+              wd.currentText = mapEntry.stage3 || mapEntry.stage2 || wd.currentText;
+              wd.stage = mapEntry.stage3 ? 3 : 2;
+              wd.size = mapEntry.stage3 ? 64 : 48;
+            } else if (wd.matchCount >= 2) {
+              wd.currentText = mapEntry.stage2 || wd.currentText;
+              wd.stage = 2;
+              wd.size = 48;
+            }
+          }
+        });
+
+        // 2. If new label was not on screen, push to pool
+        if (!foundMatch) {
+          activeProfileWords.push(cleanIncoming);
+        }
+      });
     };
   };
 
   async function waitForVideoDimensions() {
     if (!video || !video.elt) return;
-
     const el = video.elt;
     if (!el.videoWidth || !el.videoHeight) {
       requestAnimationFrame(waitForVideoDimensions);
       return;
     }
-
     if (videoReady) return;
 
     try {
       if (el.paused) await el.play();
     } catch (err) {
-      console.warn("Camera play delayed:", err);
       requestAnimationFrame(waitForVideoDimensions);
       return;
     }
@@ -124,22 +202,29 @@ const backgroundWordsSketch = (p) => {
 
     try {
       bodySegmentation = await ml5.bodySegmentation("SelfieSegmentation", { maskType: "person" });
-      await new Promise((resolve) => requestAnimationFrame(resolve));
-      bodySegmentation.detectStart(video.elt, gotSegmentation);
+      // Continuous segmentation loop
+      runContinuousDetection();
     } catch (err) {
       console.error("Could not start body segmentation:", err);
       segmentationStarted = false;
     }
   }
 
-  function gotSegmentation(result) {
-    if (!result) return;
-    segmentation = result;
+  // Continuously detects body position frame by frame
+  function runContinuousDetection() {
+    if (!bodySegmentation || !video || !video.elt || !videoReady) return;
 
-    if (!hasPackedOnce && videoReady && video && video.elt && video.elt.videoWidth > 0 && video.elt.videoHeight > 0) {
-      hasPackedOnce = true;
-      requestAnimationFrame(() => {
-        if (segmentation) packWords();
+    if (!isDetecting) {
+      isDetecting = true;
+      bodySegmentation.detect(video.elt, (result) => {
+        isDetecting = false;
+        if (result) {
+          segmentation = result;
+          // Live repack: re-position existing text to current live body position
+          packWords(true);
+        }
+        // Loop detection on next frame
+        requestAnimationFrame(runContinuousDetection);
       });
     }
   }
@@ -153,26 +238,24 @@ const backgroundWordsSketch = (p) => {
   }
 
   function getVideoDrawRect() {
-  const vw = getVideoWidth();
-  const vh = getVideoHeight();
+    const vw = getVideoWidth();
+    const vh = getVideoHeight();
+    if (!vw || !vh) return { x: 0, y: 0, w: p.width, h: p.height };
 
-  if (!vw || !vh) return { x: 0, y: 0, w: p.width, h: p.height };
+    const videoRatio = vw / vh;
+    const canvasRatio = p.width / p.height;
+    let w, h;
 
-  const videoRatio = vw / vh;
-  const canvasRatio = p.width / p.height;
-  let w, h;
+    if (videoRatio > canvasRatio) {
+      w = p.width;
+      h = w / videoRatio;
+    } else {
+      h = p.height;
+      w = h * videoRatio;
+    }
 
-  // Scale down to contain the video fully inside the canvas
-  if (videoRatio > canvasRatio) {
-    w = p.width;
-    h = w / videoRatio;
-  } else {
-    h = p.height;
-    w = h * videoRatio;
+    return { x: (p.width - w) / 2, y: (p.height - h) / 2, w, h };
   }
-
-  return { x: (p.width - w) / 2, y: (p.height - h) / 2, w, h };
-}
 
   function canvasToVideo(x, y) {
     const rect = getVideoDrawRect();
@@ -203,13 +286,10 @@ const backgroundWordsSketch = (p) => {
       return { vPix: [], vW: 0, vH: 0, mPix: null, mW: 0, mH: 0 };
     }
 
-    video.loadPixels();
-    const vPix = video.pixels && video.pixels.length ? video.pixels.slice() : [];
     const mData = segmentation && segmentation.maskImageData ? segmentation.maskImageData : null;
     const mPix = mData && mData.data && mData.width > 0 && mData.height > 0 ? mData.data.slice() : null;
 
     return {
-      vPix,
       vW: video.width || videoW,
       vH: video.height || videoH,
       mPix,
@@ -231,47 +311,13 @@ const backgroundWordsSketch = (p) => {
     return snap.mPix[i + 3] > maskThreshold;
   }
 
-  function snapBrightnessAt(snap, canvasX, canvasY) {
-    const videoPoint = canvasToVideo(canvasX, canvasY);
-    const w = snap.vW;
-    const h = snap.vH;
-
-    const x = Math.floor(p.constrain(videoPoint.x, 0, w - 1));
-    const y = Math.floor(p.constrain(videoPoint.y, 0, h - 1));
-
-    const i = (y * w + x) * 4;
-    const r = snap.vPix[i] ?? 128;
-    const g = snap.vPix[i + 1] ?? 128;
-    const b = snap.vPix[i + 2] ?? 128;
-
-    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  }
-
-  function fitTextSize(str, targetWidth, maxSize, minSize = 5) {
-    if (targetWidth <= 0) return 0;
-    p.textSize(maxSize);
-
-    if (p.textWidth(str) <= targetWidth) return maxSize;
-
-    let lo = minSize;
-    let hi = maxSize;
-
-    for (let i = 0; i < 12; i++) {
-      const mid = (lo + hi) / 2;
-      p.textSize(mid);
-      if (p.textWidth(str) <= targetWidth) lo = mid;
-      else hi = mid;
-    }
-    return lo;
-  }
-
   function getRowSegments(snap, y) {
     const segments = [];
     let inSeg = false;
     let startX = 0;
     let currentSelfState = false;
 
-    for (let x = 0; x < p.width; x += 3) {
+    for (let x = 0; x < p.width; x += 4) {
       const selfState = snapIsSelfAt(snap, x, y);
 
       if (!inSeg) {
@@ -294,31 +340,23 @@ const backgroundWordsSketch = (p) => {
     return segments;
   }
 
-  function chooseWord() {
-    const attributes = p.shuffle([...attributeWords]);
-    const labels = p.shuffle([...socialLabelWords]);
-
-    if (growthStage === 0) {
-      return { text: attributes[0], type: "attribute" };
+  function getWordPool() {
+    if (activeProfileWords.length > 0) {
+      return activeProfileWords;
     }
-
-    const labelChance = p.constrain(0.25 + (growthStage - 1) * 0.2, 0, 0.8);
-    if (p.random() < labelChance) {
-      return { text: labels[0], type: "label" };
-    }
-
-    return { text: attributes[0], type: "attribute" };
+    return STAGE1_WORDS;
   }
 
-  function packWords() {
+  function packWords(preserveState = false) {
     if (!videoReady || !video || !video.elt || !segmentation) return;
 
     const snap = takeSnapshot();
-    if (!snap.vPix || snap.vPix.length === 0 || !snap.mPix) return;
+    if (!snap.mPix) return;
 
     const newWords = [];
     const newRuns = [];
     let y = 0;
+    let existingIndex = 0;
 
     while (y < p.height) {
       const rowY = y + rowHeight / 2;
@@ -327,7 +365,9 @@ const backgroundWordsSketch = (p) => {
       for (const seg of segments) {
         const segW = seg[1] - seg[0];
         if (segW >= 12) {
-          packSegment(snap, seg[0], seg[1], y, rowHeight, newWords, newRuns);
+          existingIndex = packSegment(
+            snap, seg[0], seg[1], y, rowHeight, newWords, newRuns, preserveState, existingIndex
+          );
         }
       }
       y += rowHeight + GAP;
@@ -337,43 +377,51 @@ const backgroundWordsSketch = (p) => {
     runs = newRuns;
   }
 
-  function packSegment(snap, x0, x1, y0, rh, wordList, runList) {
+  function packSegment(snap, x0, x1, y0, rh, wordList, runList, preserveState, existingIndex) {
     let cursorX = x0;
     const maxAttempts = 80;
     let attempts = 0;
     const runItems = [];
+    const pool = getWordPool();
 
     while (cursorX < x1 - 4 && attempts < maxAttempts) {
       attempts++;
       const remaining = x1 - cursorX;
       if (remaining < 8) break;
 
-      const chosen = chooseWord();
-      const word = chosen.text;
-      const maxTextSize = Math.min(rh - GAP, 13);
-      const size = fitTextSize(word, remaining, maxTextSize, 5);
+      let baseWord = pool[Math.floor(p.random(pool.length))];
+      let currentText = baseWord;
+      let stage = 1;
+      let fontSize = 13;
+      let matchCount = 1;
 
-      if (size < 5) break;
+      // Retain active word properties (stage, font size, text changes) when updating live position
+      if (preserveState && words[existingIndex]) {
+        const prev = words[existingIndex];
+        baseWord = prev.baseStage1;
+        currentText = prev.currentText;
+        stage = prev.stage;
+        fontSize = prev.size;
+        matchCount = prev.matchCount;
+        existingIndex++;
+      }
 
       p.textFont("Arial");
-      p.textStyle(p.NORMAL);
-      p.textSize(size);
+      p.textStyle(p.BOLD);
+      p.textSize(fontSize);
 
-      const w = p.textWidth(word);
-      const brightness = snapBrightnessAt(snap, cursorX + w / 2, y0 + rh / 2);
+      let w = p.textWidth(currentText);
 
       const wordObj = {
-        text: word,
-        type: chosen.type,
+        baseStage1: baseWord,
+        currentText: currentText,
+        stage: stage,
+        matchCount: matchCount,
         x: cursorX,
         y: y0 + rh / 2,
         w: w,
-        size: size,
-        weight: 100,
-        growth: 0,
-        brightness: brightness,
+        size: fontSize,
         progress: p.constrain(cursorX / p.width, 0, 1),
-        labelGrowth: chosen.type === "label" ? 1 : 0,
       };
 
       wordList.push(wordObj);
@@ -384,195 +432,68 @@ const backgroundWordsSketch = (p) => {
     if (runItems.length > 0) {
       runList.push({ endX: x1, items: runItems });
     }
+
+    return existingIndex;
   }
 
-  function growAllRuns() {
-    growthStage++;
+  function getFlashGameGradientColor(progress) {
+    const colors = [
+      [255, 235, 59],  // Yellow
+      [118, 255, 3,],  // Bright Green
+      [0, 230, 118],   // Green
+      [255, 64, 129],  // Pink
+      [213, 0, 249]    // Magenta
+    ];
 
-    for (const run of runs) {
-      if (run.items.length === 0) continue;
-      const items = run.items;
+    const scaled = progress * (colors.length - 1);
+    const idx = Math.floor(scaled);
+    const nextIdx = Math.min(idx + 1, colors.length - 1);
+    const factor = scaled - idx;
 
-      if (growthStage >= 1) {
-        const labelAlreadyExists = items.some((item) => item.type === "label");
-        if (!labelAlreadyExists && items.length >= 2 && p.random() < 0.45) {
-          insertLabelIntoRun(run);
-        }
-      }
+    const c1 = colors[idx];
+    const c2 = colors[nextIdx];
 
-      for (const item of items) {
-        if (item.type === "label") {
-          item.growth += p.random(0.65, 1.05);
-          item.size *= p.random(1.35, 1.65);
-          item.weight = Math.min(900, item.weight + p.random(120, 240));
-        } else {
-          item.growth += p.random(0.15, 0.35);
-          item.size *= p.random(1.03, 1.12);
-          item.weight = Math.min(500, item.weight + p.random(15, 45));
-        }
-      }
-      redistributeRun(run);
-    }
-  }
-
-  function insertLabelIntoRun(run) {
-    const items = run.items;
-    const labels = p.shuffle([...socialLabelWords]);
-    const label = labels[0];
-    const index = Math.floor(p.random(0, items.length + 1));
-
-    p.textFont("Arial");
-    p.textStyle(p.NORMAL);
-    p.textSize(8);
-
-    const labelObj = {
-      text: label,
-      type: "label",
-      x: 0,
-      y: items[0] ? items[0].y : 0,
-      w: p.textWidth(label),
-      size: 8,
-      weight: 100,
-      growth: 0,
-      brightness: items[0] ? items[0].brightness : 0.5,
-      progress: items[0] ? items[0].progress : 0.5,
-      labelGrowth: 1,
-    };
-
-    items.splice(index, 0, labelObj);
-    words.push(labelObj);
-  }
-
-  function redistributeRun(run) {
-    const items = run.items;
-    if (items.length === 0) return;
-
-    let totalWidth = 0;
-    for (const item of items) {
-      p.textFont("Arial");
-      p.textStyle(getP5TextStyle(item.weight));
-      p.textSize(item.size);
-      item.w = p.textWidth(item.text);
-      totalWidth += item.w;
-    }
-
-    totalWidth += GAP * Math.max(0, items.length - 1);
-    const availableWidth = Math.max(10, run.endX - getRunStartX(run));
-
-    if (totalWidth > availableWidth) {
-      const scale = availableWidth / totalWidth;
-      for (const item of items) item.size *= scale;
-
-      totalWidth = 0;
-      for (const item of items) {
-        p.textFont("Arial");
-        p.textStyle(getP5TextStyle(item.weight));
-        p.textSize(item.size);
-        item.w = p.textWidth(item.text);
-        totalWidth += item.w;
-      }
-      totalWidth += GAP * Math.max(0, items.length - 1);
-    }
-
-    const startX = getRunStartX(run);
-    const available = run.endX - startX;
-    let cursorX = startX + Math.max(0, (available - totalWidth) / 2);
-
-    for (const item of items) {
-      item.x = cursorX;
-      cursorX += item.w + GAP;
-    }
-  }
-
-  function getRunStartX(run) {
-    if (!run.items || run.items.length === 0) return 0;
-    let minX = Infinity;
-    for (const item of run.items) minX = Math.min(minX, item.x);
-    return isFinite(minX) ? minX : 0;
-  }
-
-  function getP5TextStyle(weight) {
-    return weight >= 500 ? p.BOLD : p.NORMAL;
-  }
-
-  function lerpColorRGB(c1, c2, amount) {
-    const t = p.constrain(amount, 0, 1);
     return [
-      p.lerp(c1[0], c2[0], t),
-      p.lerp(c1[1], c2[1], t),
-      p.lerp(c1[2], c2[2], t),
+      p.lerp(c1[0], c2[0], factor),
+      p.lerp(c1[1], c2[1], factor),
+      p.lerp(c1[2], c2[2], factor)
     ];
   }
 
-  function getWordColor(progress) {
-    const stops = [
-      { pos: 0, color: [255, 238, 110] },
-      { pos: 0.2, color: [240, 215, 255] },
-      { pos: 0.45, color: [195, 135, 255] },
-      { pos: 0.68, color: [120, 105, 255] },
-      { pos: 1, color: [48, 38, 155] },
-    ];
-
-    if (progress <= stops[0].pos) return stops[0].color;
-
-    for (let i = 0; i < stops.length - 1; i++) {
-      const a = stops[i];
-      const b = stops[i + 1];
-      if (progress >= a.pos && progress <= b.pos) {
-        return lerpColorRGB(a.color, b.color, (progress - a.pos) / (b.pos - a.pos));
-      }
-    }
-    return stops[stops.length - 1].color;
-  }
-
-  function drawStyledWord(wd) {
-    const color = getWordColor(wd.progress);
+  function drawFlashStyleText(wd) {
     const x = wd.x;
     const y = wd.y;
+    const txt = wd.currentText;
 
     p.textFont("Arial");
-    p.textStyle(getP5TextStyle(wd.weight));
+    p.textStyle(p.BOLD);
     p.textSize(wd.size);
     p.textAlign(p.LEFT, p.CENTER);
 
-    const weightT = p.constrain((wd.weight - 100) / 800, 0, 1);
-    const outlineWeight = wd.size * p.lerp(0.015, 0.16, weightT);
+    const fillColor = getFlashGameGradientColor(wd.progress);
 
+    // 1. Shadow Offset
     p.push();
     p.noStroke();
-    p.fill(15, 5, 55, 145);
-    p.text(wd.text, x + p.lerp(1, 4, weightT), y + p.lerp(1, 5, weightT));
+    p.fill(10, 5, 25, 200);
+    p.text(txt, x + 3, y + 3);
     p.pop();
 
+    // 2. Thick Outer Stroke
     p.push();
-    p.fill(color[0], color[1], color[2]);
-    p.stroke(20, 10, 70, 235);
-    p.strokeWeight(outlineWeight);
-    p.text(wd.text, x, y);
+    p.stroke(15, 0, 45);
+    p.strokeWeight(Math.max(3, wd.size * 0.1));
+    p.fill(fillColor[0], fillColor[1], fillColor[2]);
+    p.text(txt, x, y);
     p.pop();
 
-    if (wd.weight >= 300) {
-      p.push();
-      p.noStroke();
-      p.fill(255, 255, 255, p.map(weightT, 0, 1, 25, 65));
-      p.text(wd.text, x, y - wd.size * 0.035);
-      p.pop();
-    }
-
+    // 3. Inner White Highlight
     p.push();
     p.noStroke();
-    p.fill(color[0], color[1], color[2], 255);
-    p.text(wd.text, x, y);
+    p.fill(255, 255, 255, 120);
+    p.textSize(wd.size * 0.95);
+    p.text(txt, x, y - wd.size * 0.04);
     p.pop();
-
-    if (wd.size >= 10 && wd.weight >= 300) {
-      p.push();
-      p.noStroke();
-      p.fill(255, 255, 255, p.map(weightT, 0, 1, 15, 50));
-      p.textSize(wd.size * 0.92);
-      p.text(wd.text, x, y - wd.size * 0.09);
-      p.pop();
-    }
   }
 
   p.draw = function () {
@@ -591,19 +512,17 @@ const backgroundWordsSketch = (p) => {
     drawVideoCover();
 
     for (const wd of words) {
-      drawStyledWord(wd);
+      drawFlashStyleText(wd);
     }
   };
 
   p.windowResized = function () {
     const size = getCanvasSize();
     p.resizeCanvas(size.w, size.h);
-    hasPackedOnce = false;
 
     if (segmentation && videoReady) {
       requestAnimationFrame(() => {
-        packWords();
-        hasPackedOnce = true;
+        packWords(true);
       });
     }
   };
