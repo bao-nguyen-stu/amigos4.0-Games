@@ -202,7 +202,6 @@ const backgroundWordsSketch = (p) => {
 
     try {
       bodySegmentation = await ml5.bodySegmentation("SelfieSegmentation", { maskType: "person" });
-      // Continuous segmentation loop
       runContinuousDetection();
     } catch (err) {
       console.error("Could not start body segmentation:", err);
